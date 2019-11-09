@@ -25,9 +25,10 @@ import java.util.List;
 public class CassetteReader {
     public static final int HZ = 44100;
     private static final boolean FORCE = true;
-    private static final String CASS_DIR = "path/to/files";
-    private static final String INPUT_PATHNAME = CASS_DIR + "/M-2.wav";
-    private static final String OUTPUT_PREFIX = CASS_DIR + "/M-3-";
+    private static File input_file;
+    private static String CASS_DIR = "/home/qbarnes/github/lkesteloot/trs80-cassette-reader";
+    private static String INPUT_PATHNAME;
+    private static String OUTPUT_PREFIX = null;
 
     enum BitType { ZERO, ONE, START, BAD }
 
@@ -56,7 +57,22 @@ public class CassetteReader {
     }
 
     public static void main(String[] args) throws Exception {
-        short[] samples = readWavFile(new File(INPUT_PATHNAME));
+	if (args.length > 0) {
+		INPUT_PATHNAME = args[0];
+	} else {
+		INPUT_PATHNAME = (CASS_DIR != null ? CASS_DIR + "/": "") + "M-2.wav";
+	}
+
+	input_file = new File(INPUT_PATHNAME);
+	CASS_DIR = input_file.getParent();
+	int lio = INPUT_PATHNAME.lastIndexOf('.');
+	if (lio != -1) {
+		OUTPUT_PREFIX = INPUT_PATHNAME.substring(0,lio) + "-out-";
+	} else {
+		OUTPUT_PREFIX = (CASS_DIR != null ? CASS_DIR + "/": "") + "M-3-";
+	}
+
+	short[] samples = readWavFile(input_file);
 
         System.out.println("Performing high-pass filter.");
         samples = highPassFilter(samples, 50);

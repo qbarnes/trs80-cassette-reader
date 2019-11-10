@@ -25,6 +25,7 @@ import java.util.List;
 public class CassetteReader {
     public static final int HZ = 44100;
     private static final boolean FORCE = true;
+    private static boolean debug = false;
 
     enum BitType { ZERO, ONE, START, BAD }
 
@@ -52,26 +53,36 @@ public class CassetteReader {
         }
     }
 
+    private static void usage() {
+        System.err.println("Usage: ./gradlew run --args \"INPUT_PATHNAME OUTPUT_PREFIX [debug]\"");
+        System.exit(1);
+    }
+
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            System.err.println("Usage: ./gradlew run --args \"INPUT_PATHNAME OUTPUT_PREFIX\"");
-            System.exit(1);
+        if (args.length < 2 || args.length > 3) {
+            usage();
         }
 
         String inputPathname = args[0];
         String outputPrefix = args[1];
+        if (args.length == 3) {
+            if (args[2].equals("debug"))
+                debug = true;
+            else
+                usage();
+        }
 
         short[] samples = readWavFile(new File(inputPathname));
 
         System.out.println("Performing high-pass filter.");
         samples = highPassFilter(samples, 50);
 
-        if (false) {
+        if (debug) {
             // Dump filtered data.
             writeWavFile(samples, new File("filtered.wav"));
         }
 
-        if (false) {
+        if (debug) {
             // For debugging the low speed decoder.
             short[] pulseFrames = new short[samples.length];
             for (int i = 0; i < samples.length; i++) {
